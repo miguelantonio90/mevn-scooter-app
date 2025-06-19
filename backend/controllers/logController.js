@@ -12,7 +12,7 @@ const getLogs = async (req, res) => {
     res.json({
       success: true,
       count: logs.length,
-      data: logs
+      logs: logs
     });
   } catch (err) {
     console.error('Get logs error:', err);
