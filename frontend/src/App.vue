@@ -225,7 +225,8 @@ async function fetchLogs() {
     })
     
     if (response.ok) {
-      logs.value = await response.json()
+      const result = await response.json()
+      logs.value = result.data
     } else if (response.status === 401) {
       handleLogout()
     }

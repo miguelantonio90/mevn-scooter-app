@@ -339,14 +339,15 @@ const chartOptions = {
 
 async function fetchMetrics() {
   try {
-    const response = await fetch(`${apiBase}/efficiency-metrics`, {
+    const response = await fetch(`${apiBase}/logs/metrics/efficiency`, {
       headers: {
         'Authorization': `Bearer ${props.token}`
       }
     })
     
     if (response.ok) {
-      metrics.value = await response.json()
+      const result = await response.json()
+      metrics.value = result.data
     }
   } catch (err) {
     console.error('Error fetching metrics:', err)
