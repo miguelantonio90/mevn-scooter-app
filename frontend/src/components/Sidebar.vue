@@ -1,5 +1,8 @@
 <template>
-  <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out" :class="isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0">
+  <div 
+    class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out" 
+    :class="isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+  >
     <!-- Header del sidebar -->
     <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
       <div class="flex items-center space-x-3">
