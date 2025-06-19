@@ -67,25 +67,57 @@
         <!-- Sidebar -->
         <Sidebar 
           :current-page="currentPage" 
+          :is-open="sidebarOpen"
           @navigate="handleNavigation"
+          @close="sidebarOpen = false"
           @logout="handleLogout"
         />
 
         <!-- Main content area -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out lg:ml-64" :class="sidebarOpen ? 'ml-64' : 'ml-0'">
           <!-- Header -->
-          <header class="bg-white shadow-sm border-b border-gray-200">
-            <div class="px-6 py-4">
-              <h1 class="text-2xl font-bold text-gray-900">
-                {{ pageTitle }}
-              </h1>
+          <header class="bg-white shadow-sm border-b border-gray-200 transition-all duration-300 ease-in-out">
+            <div class="flex items-center justify-between px-6 py-4">
+              <div class="flex items-center space-x-4">
+                <!-- Toggle sidebar button - solo visible en tablet/móvil -->
+                <button 
+                  @click="sidebarOpen = !sidebarOpen"
+                  class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  :title="sidebarOpen ? 'Ocultar menú' : 'Mostrar menú'"
+                >
+                  <svg v-if="sidebarOpen" class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                  <svg v-else class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                  </svg>
+                </button>
+                
+                <h1 class="text-2xl font-bold text-gray-900">
+                  {{ pageTitle }}
+                </h1>
+              </div>
+              
+              <!-- User info in header -->
+              <div class="flex items-center space-x-3">
+                <div class="text-right">
+                  <p class="text-sm font-medium text-gray-900">{{ user?.name || 'Usuario' }}</p>
+                  <p class="text-xs text-gray-500">{{ user?.email || 'usuario@email.com' }}</p>
+                </div>
+                <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-indigo-600 rounded-full flex items-center justify-center">
+                  <span class="text-white font-semibold text-xs">{{ userInitials }}</span>
+                </div>
+              </div>
             </div>
           </header>
 
           <!-- Page content -->
-          <main class="flex-1 overflow-y-auto p-6">
+          <main class="flex-1 overflow-y-auto p-6 transition-all duration-300 ease-in-out">
             <Dashboard v-if="currentPage === 'dashboard'" />
             <LogForm v-if="currentPage === 'form'" @log-created="handleLogCreated" />
+            <LogHistory v-if="currentPage === 'history'" @edit-log="handleEditLog" />
+            <Profile v-if="currentPage === 'profile'" />
+            <Settings v-if="currentPage === 'settings'" />
           </main>
         </div>
       </div>
@@ -94,11 +126,14 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import Login from './components/Login.vue'
 import Register from './components/Register.vue'
 import Dashboard from './components/Dashboard.vue'
 import LogForm from './components/LogForm.vue'
+import LogHistory from './components/LogHistory.vue'
+import Profile from './components/Profile.vue'
+import Settings from './components/Settings.vue'
 import Sidebar from './components/Sidebar.vue'
 
 export default {
@@ -108,6 +143,9 @@ export default {
     Register,
     Dashboard,
     LogForm,
+    LogHistory,
+    Profile,
+    Settings,
     Sidebar
   },
   setup() {
@@ -116,13 +154,35 @@ export default {
     const activeTab = ref('login')
     const loading = ref(true)
     const authError = ref('')
+    const sidebarOpen = ref(true)
 
     const pageTitle = computed(() => {
       const titles = {
         dashboard: 'Dashboard',
-        form: 'Nuevo Registro'
+        form: 'Nuevo Registro',
+        history: 'Historial de Viajes',
+        profile: 'Perfil de Usuario',
+        settings: 'Configuración'
       }
       return titles[currentPage.value] || 'Dashboard'
+    })
+
+    const user = computed(() => {
+      try {
+        return JSON.parse(localStorage.getItem('user') || '{}')
+      } catch {
+        return {}
+      }
+    })
+
+    const userInitials = computed(() => {
+      if (!user.value.name) return 'U'
+      return user.value.name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
     })
 
     const checkAuth = () => {
@@ -173,6 +233,11 @@ export default {
 
     const handleNavigation = (page) => {
       currentPage.value = page
+      // Solo cerrar sidebar en tablet/móvil (pantallas pequeñas)
+      if (window.innerWidth < 1024) {
+        sidebarOpen.value = false
+      }
+      // En desktop, mantener el sidebar siempre abierto
       console.log('Navigating to:', page)
     }
 
@@ -191,9 +256,38 @@ export default {
       console.log('Log created successfully')
     }
 
+    const handleEditLog = (log) => {
+      // Navegar al formulario con los datos del log para editar
+      currentPage.value = 'form'
+      // Aquí podrías pasar los datos del log al formulario
+      console.log('Edit log:', log)
+    }
+
+    // Función para manejar el cambio de tamaño de ventana
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // En desktop, siempre mantener el sidebar abierto
+        sidebarOpen.value = true
+      } else {
+        // En tablet/móvil, cerrar el sidebar
+        sidebarOpen.value = false
+      }
+    }
+
     onMounted(() => {
       checkAuth()
       loading.value = false
+      
+      // Agregar listener para el cambio de tamaño de ventana
+      window.addEventListener('resize', handleResize)
+      
+      // Configurar estado inicial del sidebar según el tamaño de pantalla
+      handleResize()
+    })
+
+    // Cleanup del listener cuando el componente se desmonte
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize)
     })
 
     return {
@@ -202,13 +296,17 @@ export default {
       activeTab,
       loading,
       authError,
+      sidebarOpen,
       pageTitle,
+      user,
+      userInitials,
       handleLoginSuccess,
       handleRegisterSuccess,
       handleAuthError,
       handleNavigation,
       handleLogout,
-      handleLogCreated
+      handleLogCreated,
+      handleEditLog
     }
   }
 }

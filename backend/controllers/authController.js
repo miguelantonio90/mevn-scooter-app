@@ -150,8 +150,270 @@ const verifyToken = async (req, res) => {
   }
 };
 
+// @desc    Get user profile
+// @route   GET /api/auth/profile
+// @access  Private
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        scooter: user.scooter,
+        settings: user.settings,
+        createdAt: user.createdAt,
+        lastLogin: user.lastLogin
+      }
+    });
+  } catch (err) {
+    console.error('Get profile error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error interno del servidor' 
+    });
+  }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  try {
+    const { name, username, email } = req.body;
+
+    // Validar campos requeridos
+    if (!name || !username || !email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nombre, usuario y email son requeridos'
+      });
+    }
+
+    // Verificar si el username o email ya existe en otro usuario
+    const existingUser = await User.findOne({
+      $and: [
+        { _id: { $ne: req.user.id } },
+        { $or: [{ email }, { username }] }
+      ]
+    });
+    
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Usuario o email ya existe' 
+      });
+    }
+
+    // Actualizar usuario
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name, username, email },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Perfil actualizado exitosamente',
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        scooter: user.scooter,
+        settings: user.settings,
+        createdAt: user.createdAt,
+        lastLogin: user.lastLogin
+      }
+    });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error interno del servidor' 
+    });
+  }
+};
+
+// @desc    Update scooter data
+// @route   PUT /api/auth/scooter
+// @access  Private
+const updateScooter = async (req, res) => {
+  try {
+    const { brand, model, year, motorPower, batteryCapacity, maxSpeed } = req.body;
+
+    // Validar campos requeridos (motorPower es opcional)
+    if (!brand || !model || !year || !batteryCapacity || !maxSpeed) {
+      return res.status(400).json({
+        success: false,
+        error: 'Marca, modelo, año, capacidad de batería y velocidad máxima son campos requeridos. La potencia del motor es opcional.'
+      });
+    }
+
+    // Validar rangos
+    if (year < 2010 || year > 2030) {
+      return res.status(400).json({
+        success: false,
+        error: 'El año debe estar entre 2010 y 2030'
+      });
+    }
+
+    if (motorPower && (motorPower < 100 || motorPower > 5000)) {
+      return res.status(400).json({
+        success: false,
+        error: 'La potencia del motor debe estar entre 100W y 5000W'
+      });
+    }
+
+    if (batteryCapacity < 100 || batteryCapacity > 10000) {
+      return res.status(400).json({
+        success: false,
+        error: 'La capacidad de batería debe estar entre 100Wh y 10000Wh'
+      });
+    }
+
+    if (maxSpeed < 10 || maxSpeed > 100) {
+      return res.status(400).json({
+        success: false,
+        error: 'La velocidad máxima debe estar entre 10km/h y 100km/h'
+      });
+    }
+
+    // Preparar datos del scooter (motorPower es opcional)
+    const scooterData = { brand, model, year, batteryCapacity, maxSpeed };
+    if (motorPower) {
+      scooterData.motorPower = motorPower;
+    }
+
+    // Actualizar datos del scooter
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { scooter: scooterData },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Datos del scooter actualizados exitosamente',
+      scooter: user.scooter
+    });
+  } catch (err) {
+    console.error('Update scooter error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error interno del servidor' 
+    });
+  }
+};
+
+// @desc    Update user settings
+// @route   PUT /api/auth/settings
+// @access  Private
+const updateSettings = async (req, res) => {
+  try {
+    const { 
+      distanceUnit, 
+      speedUnit, 
+      temperatureUnit, 
+      batteryNotifications, 
+      maintenanceNotifications, 
+      shareAnonymousData 
+    } = req.body;
+
+    // Validar unidades
+    const validDistanceUnits = ['km', 'mi'];
+    const validSpeedUnits = ['kmh', 'mph'];
+    const validTemperatureUnits = ['celsius', 'fahrenheit'];
+
+    if (distanceUnit && !validDistanceUnits.includes(distanceUnit)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Unidad de distancia inválida'
+      });
+    }
+
+    if (speedUnit && !validSpeedUnits.includes(speedUnit)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Unidad de velocidad inválida'
+      });
+    }
+
+    if (temperatureUnit && !validTemperatureUnits.includes(temperatureUnit)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Unidad de temperatura inválida'
+      });
+    }
+
+    // Preparar objeto de configuraciones
+    const settings = {};
+    if (distanceUnit !== undefined) settings.distanceUnit = distanceUnit;
+    if (speedUnit !== undefined) settings.speedUnit = speedUnit;
+    if (temperatureUnit !== undefined) settings.temperatureUnit = temperatureUnit;
+    if (batteryNotifications !== undefined) settings.batteryNotifications = batteryNotifications;
+    if (maintenanceNotifications !== undefined) settings.maintenanceNotifications = maintenanceNotifications;
+    if (shareAnonymousData !== undefined) settings.shareAnonymousData = shareAnonymousData;
+
+    // Actualizar configuraciones
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { settings },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Configuraciones actualizadas exitosamente',
+      settings: user.settings
+    });
+  } catch (err) {
+    console.error('Update settings error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error interno del servidor' 
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
-  verifyToken
+  verifyToken,
+  getProfile,
+  updateProfile,
+  updateScooter,
+  updateSettings
 }; 

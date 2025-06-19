@@ -1,4 +1,5 @@
 const Log = require('../models/Log');
+const User = require('../models/User');
 
 // @desc    Get all logs for user
 // @route   GET /api/logs
@@ -58,9 +59,14 @@ const getLog = async (req, res) => {
 // @access  Private
 const createLog = async (req, res) => {
   try {
+    // Obtener la capacidad de batería del perfil del usuario
+    const user = await User.findById(req.user._id);
+    const batteryCapacity = user?.scooter?.batteryCapacity || 1000; // Valor por defecto si no está configurado
+    
     const logData = { 
       ...req.body, 
-      userId: req.user._id 
+      userId: req.user._id,
+      batteryCapacity: batteryCapacity // Agregar la capacidad de batería automáticamente
     };
     
     const log = new Log(logData);
@@ -185,6 +191,10 @@ const getEfficiencyMetrics = async (req, res) => {
       });
     }
 
+    // Obtener la capacidad de batería del perfil del usuario
+    const user = await User.findById(req.user._id);
+    const batteryCapacity = user?.scooter?.batteryCapacity || 1000;
+
     // Calcular métricas
     const totalTrips = logs.length;
     const totalDistance = logs.reduce((sum, log) => sum + log.kmTravelled, 0);
@@ -216,8 +226,7 @@ const getEfficiencyMetrics = async (req, res) => {
       ? (maxVoltageRecent / maxVoltageHistorical) * 100 
       : 100;
     
-    // Rango estimado
-    const batteryCapacity = logs[0].batteryCapacity || 1000;
+    // Rango estimado usando la capacidad del perfil
     const estimatedRange = averageWhPerKm > 0 ? batteryCapacity / averageWhPerKm : 0;
 
     res.json({

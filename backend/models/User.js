@@ -1,5 +1,71 @@
 const mongoose = require('mongoose');
 
+// Esquema para los datos del scooter
+const ScooterSchema = new mongoose.Schema({
+  brand: {
+    type: String,
+    trim: true,
+    maxlength: 50
+  },
+  model: {
+    type: String,
+    trim: true,
+    maxlength: 100
+  },
+  year: {
+    type: Number,
+    min: 2010,
+    max: 2030
+  },
+  motorPower: {
+    type: Number,
+    min: 100,
+    max: 5000,
+    required: false
+  },
+  batteryCapacity: {
+    type: Number,
+    min: 100,
+    max: 10000
+  },
+  maxSpeed: {
+    type: Number,
+    min: 10,
+    max: 100
+  }
+}, { _id: false });
+
+// Esquema para configuraciones del usuario
+const SettingsSchema = new mongoose.Schema({
+  distanceUnit: {
+    type: String,
+    enum: ['km', 'mi'],
+    default: 'km'
+  },
+  speedUnit: {
+    type: String,
+    enum: ['kmh', 'mph'],
+    default: 'kmh'
+  },
+  temperatureUnit: {
+    type: String,
+    enum: ['celsius', 'fahrenheit'],
+    default: 'celsius'
+  },
+  batteryNotifications: {
+    type: Boolean,
+    default: true
+  },
+  maintenanceNotifications: {
+    type: Boolean,
+    default: true
+  },
+  shareAnonymousData: {
+    type: Boolean,
+    default: false
+  }
+}, { _id: false });
+
 const UserSchema = new mongoose.Schema({
   username: { 
     type: String, 
@@ -27,6 +93,14 @@ const UserSchema = new mongoose.Schema({
     required: true,
     trim: true,
     maxlength: 100
+  },
+  scooter: {
+    type: ScooterSchema,
+    default: {}
+  },
+  settings: {
+    type: SettingsSchema,
+    default: {}
   },
   createdAt: { 
     type: Date, 

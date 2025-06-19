@@ -1,7 +1,10 @@
 <template>
   <div 
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out" 
-    :class="isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+    class="fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0" 
+    :class="[
+      isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+      'w-64'
+    ]"
   >
     <!-- Header del sidebar -->
     <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
@@ -34,7 +37,7 @@
     </div>
 
     <!-- Navegación -->
-    <nav class="flex-1 px-4 py-6 space-y-2">
+    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
       <div class="space-y-1">
         <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Navegación
@@ -63,12 +66,12 @@
         </button>
 
         <button
-          @click="navigateTo('logs')"
+          @click="navigateTo('history')"
           class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
-          :class="currentPage === 'logs' ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100'"
+          :class="currentPage === 'history' ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100'"
         >
           <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           Historial
         </button>
@@ -76,7 +79,7 @@
 
       <div class="space-y-1 pt-4">
         <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          Configuración
+          Cuenta
         </h3>
         
         <button
@@ -156,7 +159,10 @@ const user = computed(() => {
 
 function navigateTo(view) {
   emit('navigate', view)
-  emit('close')
+  // Solo cerrar sidebar en tablet/móvil
+  if (window.innerWidth < 1024) {
+    emit('close')
+  }
 }
 
 function handleLogout() {

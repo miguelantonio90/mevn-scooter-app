@@ -102,20 +102,6 @@
             </div>
             
             <div>
-              <label for="batteryCapacity" class="form-label">Capacidad Batería (Wh)</label>
-              <input 
-                id="batteryCapacity" 
-                type="number" 
-                v-model.number="form.batteryCapacity" 
-                step="100" 
-                min="0" 
-                required 
-                class="form-input"
-                placeholder="1000"
-              />
-            </div>
-            
-            <div>
               <label for="speed" class="form-label">Velocidad Promedio (km/h)</label>
               <input 
                 id="speed" 
@@ -125,6 +111,19 @@
                 min="0" 
                 class="form-input"
                 placeholder="25"
+              />
+            </div>
+            
+            <div>
+              <label for="riderWeight" class="form-label">Peso del Conductor (kg)</label>
+              <input 
+                id="riderWeight" 
+                type="number" 
+                v-model.number="form.riderWeight" 
+                step="1" 
+                min="0" 
+                class="form-input"
+                placeholder="70"
               />
             </div>
           </div>
@@ -150,19 +149,6 @@
                 <option value="hilly">⛰️ Montañoso</option>
                 <option value="mixed">🔄 Mixto</option>
               </select>
-            </div>
-            
-            <div>
-              <label for="riderWeight" class="form-label">Peso del Conductor (kg)</label>
-              <input 
-                id="riderWeight" 
-                type="number" 
-                v-model.number="form.riderWeight" 
-                step="1" 
-                min="0" 
-                class="form-input"
-                placeholder="70"
-              />
             </div>
           </div>
 
@@ -245,7 +231,6 @@ export default {
       voltageStart: 0,
       voltageEnd: 0,
       kmTravelled: 0,
-      batteryCapacity: 1000,
       weather: '',
       terrain: '',
       riderWeight: 0,
@@ -319,7 +304,6 @@ export default {
         voltageStart: 0,
         voltageEnd: 0,
         kmTravelled: 0,
-        batteryCapacity: 1000,
         weather: '',
         terrain: '',
         riderWeight: 0,

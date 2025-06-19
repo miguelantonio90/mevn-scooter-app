@@ -1,19 +1,29 @@
 # 🛴 Scooter Battery Tracking App
 
-A full-stack MEVN (MongoDB, Express.js, Vue.js, Node.js) application for tracking scooter battery charge logs and monitoring battery status.
+A full-stack MEVN (MongoDB, Express.js, Vue.js, Node.js) application for tracking scooter battery charge logs and monitoring battery status with user authentication and advanced analytics.
 
 ## 📋 Features
+
+### 🔐 Authentication & User Management
+- **JWT Authentication**: Secure token-based authentication
+- **User Registration**: Create new user accounts with validation
+- **User Login**: Secure login with email and password
+- **User Profiles**: Manage personal information and scooter settings
+- **Session Management**: Automatic token validation and logout
 
 ### 🔋 Battery Management
 - **Real-time Battery Status**: Visual progress bar showing current battery percentage
 - **Voltage Tracking**: Monitor battery voltage levels (60V-84V range)
 - **Smart Battery Calculation**: Automatic percentage calculation based on voltage range
 - **Color-coded Status**: Visual indicators (green/yellow/red) based on battery level
+- **Efficiency Metrics**: Calculate and display battery efficiency over time
 
-### 📊 Data Visualization
-- **Interactive Charts**: Line charts for voltage and distance tracking
-- **Historical Data**: View trends over time with Chart.js integration
-- **Responsive Design**: Charts adapt to different screen sizes
+### 📊 Advanced Analytics & Dashboard
+- **Interactive Charts**: Line charts for voltage and distance tracking using Chart.js
+- **Efficiency Metrics**: Battery efficiency calculations and trends
+- **Historical Data**: View trends over time with comprehensive analytics
+- **Performance Indicators**: Average efficiency, total distance, and usage statistics
+- **Responsive Charts**: Charts adapt to different screen sizes
 
 ### 📝 Log Management
 - **CRUD Operations**: Create, Read, Update, Delete battery logs
@@ -21,31 +31,65 @@ A full-stack MEVN (MongoDB, Express.js, Vue.js, Node.js) application for trackin
 - **Distance Monitoring**: Track kilometers travelled
 - **Notes System**: Add optional notes to each log entry
 - **Form Validation**: Input validation for voltage and distance fields
+- **Auto-calculation**: Battery capacity automatically retrieved from user profile
 
-### 🎨 User Interface
-- **Modern UI**: Clean, responsive design with Bootstrap 4
-- **Intuitive Forms**: Easy-to-use input forms with proper validation
-- **Real-time Updates**: Instant UI updates when data changes
-- **Mobile-Friendly**: Responsive design works on all devices
+### 🎨 Modern User Interface
+- **Tailwind CSS**: Modern, responsive design system
+- **Sidebar Navigation**: Always-open sidebar on desktop, collapsible on mobile
+- **Responsive Design**: Optimized for desktop, tablet, and mobile
+- **Dark/Light Theme**: Clean, modern interface with proper contrast
+- **Loading States**: Smooth loading indicators and error handling
+
+### 🏗️ Backend Architecture
+- **Modular Structure**: Organized into models, controllers, routes, and middleware
+- **JWT Middleware**: Secure authentication for protected routes
+- **Data Validation**: Comprehensive input validation and error handling
+- **Default Admin User**: Automatic creation of admin user on first run
+- **Sample Data**: Initial data population for testing
 
 ## 🏗️ Architecture
 
 ### Backend (Node.js + Express + MongoDB)
-- **RESTful API**: Full CRUD operations for battery logs
-- **MongoDB Integration**: Mongoose ODM for data persistence
-- **CORS Support**: Cross-origin resource sharing enabled
-- **Error Handling**: Comprehensive error handling and validation
+```
+backend/
+├── config/
+│   ├── database.js      # MongoDB connection and initialization
+│   ├── initData.js      # Default admin user and sample data
+│   └── sampleData.js    # Sample log data
+├── controllers/
+│   ├── authController.js # Authentication logic
+│   └── logController.js  # Log CRUD operations
+├── middleware/
+│   └── auth.js          # JWT authentication middleware
+├── models/
+│   ├── Log.js           # Log data model
+│   └── User.js          # User data model
+├── routes/
+│   ├── auth.js          # Authentication routes
+│   └── logs.js          # Log management routes
+└── server.js            # Express server setup
+```
 
-### Frontend (Vue.js 3 + Vite)
-- **Vue 3 Composition API**: Modern reactive framework
-- **Vite Build Tool**: Fast development and build process
-- **Chart.js Integration**: Professional data visualization
-- **Bootstrap Styling**: Responsive UI components
+### Frontend (Vue.js 3 + Vite + Tailwind CSS)
+```
+frontend/src/
+├── components/
+│   ├── Dashboard.vue    # Main dashboard with charts and metrics
+│   ├── LogForm.vue      # Battery log creation/editing form
+│   ├── LogHistory.vue   # Historical log display
+│   ├── Login.vue        # User login component
+│   ├── Register.vue     # User registration component
+│   ├── Profile.vue      # User profile management
+│   ├── Settings.vue     # Application settings
+│   └── Sidebar.vue      # Navigation sidebar
+├── App.vue              # Main application component
+└── main.js              # Vue app entry point
+```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- **Node.js v20.19.0 or higher** (see `.nvmrc` file)
 - MongoDB (local or cloud instance)
 - npm or yarn package manager
 
@@ -75,11 +119,7 @@ A full-stack MEVN (MongoDB, Express.js, Vue.js, Node.js) application for trackin
    ```env
    PORT=3000
    MONGO_URI=mongodb://localhost:27020/scooter-logs
-   ```
-
-   Create a `.env` file in the frontend directory:
-   ```env
-   VITE_API_BASE=http://localhost:3000/api
+   JWT_SECRET=your-secret-key-here
    ```
 
 5. **Start MongoDB**
@@ -106,21 +146,51 @@ A full-stack MEVN (MongoDB, Express.js, Vue.js, Node.js) application for trackin
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:3000
 
+### Default Admin User
+The application automatically creates a default admin user on first run:
+- **Email**: admin@scooter.com
+- **Password**: admin123
+
 ## 📚 API Endpoints
 
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `GET /api/auth/profile` - Get user profile (protected)
+
 ### Battery Logs
-- `GET /api/logs` - Retrieve all logs (sorted by date descending)
+- `GET /api/logs` - Retrieve all logs for authenticated user
 - `POST /api/logs` - Create a new battery log
 - `PUT /api/logs/:id` - Update an existing log
 - `DELETE /api/logs/:id` - Delete a log
+- `GET /api/logs/efficiency` - Get efficiency metrics
 
-### Data Schema
+### User Management
+- `PUT /api/auth/profile` - Update user profile
+- `PUT /api/auth/settings` - Update user settings
+
+### Data Schemas
+
+**User Schema:**
 ```javascript
 {
-  date: Date,           // Required: Date of the log entry
-  voltage: Number,      // Required: Battery voltage (60V-84V)
-  kmTravelled: Number,  // Required: Distance travelled in kilometers
-  notes: String         // Optional: Additional notes
+  name: String,           // Required: User's full name
+  email: String,          // Required: Unique email address
+  password: String,       // Required: Hashed password
+  motorPower: Number,     // Optional: Motor power in watts
+  batteryCapacity: Number // Optional: Battery capacity in Ah
+}
+```
+
+**Log Schema:**
+```javascript
+{
+  userId: ObjectId,       // Required: Reference to user
+  date: Date,             // Required: Date of the log entry
+  voltage: Number,        // Required: Battery voltage (60V-84V)
+  kmTravelled: Number,    // Required: Distance travelled in kilometers
+  notes: String,          // Optional: Additional notes
+  efficiency: Number      // Calculated: Battery efficiency percentage
 }
 ```
 
@@ -130,74 +200,111 @@ A full-stack MEVN (MongoDB, Express.js, Vue.js, Node.js) application for trackin
 
 **Backend:**
 - `npm start` - Start the production server
-- `npm run dev` - Start development server with nodemon (if configured)
+- `npm run dev` - Start development server with nodemon
+- `node scripts/createAdmin.js` - Manually create admin user
 
 **Frontend:**
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
-- `npm run serve` - Preview production build
+- `npm run preview` - Preview production build
 
-### Project Structure
-```
-mevn_scooter_app/
-├── backend/
-│   ├── package.json
-│   ├── server.js          # Express server with API endpoints
-│   └── package-lock.json
-├── frontend/
-│   ├── package.json
-│   ├── vite.config.js     # Vite configuration
-│   ├── index.html         # Entry HTML file
-│   └── src/
-│       ├── main.js        # Vue app entry point
-│       └── App.vue        # Main Vue component
-└── README.md
-```
+### Key Features
 
-## 🔧 Configuration
+#### 🔐 Authentication System
+- JWT token-based authentication
+- Automatic token validation
+- Protected routes with middleware
+- User session management
 
-### MongoDB Connection
-The app connects to MongoDB on port 27020 by default. You can change this by setting the `MONGO_URI` environment variable.
+#### 📊 Dashboard Analytics
+- Real-time battery efficiency metrics
+- Interactive charts for voltage and distance trends
+- Performance indicators and statistics
+- Responsive chart components
 
-### API Base URL
-The frontend connects to the backend API. Configure the base URL using the `VITE_API_BASE` environment variable.
+#### 🎨 Modern UI/UX
+- Tailwind CSS for modern styling
+- Responsive sidebar navigation
+- Always-open sidebar on desktop
+- Collapsible sidebar on mobile/tablet
+- Loading states and error handling
 
-### Battery Voltage Range
-The battery percentage calculation assumes a voltage range of 60V-84V. This can be modified in the `batteryPercent` computed property in `App.vue`.
+#### 🔋 Smart Battery Management
+- Automatic battery percentage calculation
+- Efficiency metrics calculation
+- Color-coded status indicators
+- Historical trend analysis
 
-## 🎯 Usage
+## 🎯 Usage Guide
 
-1. **Add a Battery Log**
-   - Fill in the date, voltage, and kilometers travelled
+### 1. **User Registration & Login**
+   - Register with email and password
+   - Login to access the dashboard
+   - Update profile with scooter specifications
+
+### 2. **Dashboard Overview**
+   - View current battery status and efficiency
+   - Analyze historical trends with interactive charts
+   - Monitor performance metrics
+
+### 3. **Add Battery Logs**
+   - Fill in voltage and distance data
    - Add optional notes
-   - Click "Add Log"
+   - Automatic efficiency calculation
+   - Battery capacity from user profile
 
-2. **Monitor Battery Status**
-   - View the battery percentage bar at the top
-   - Check the current voltage reading
-   - Monitor color-coded status indicators
+### 4. **Manage Data**
+   - View all logs in chronological order
+   - Edit or delete existing logs
+   - Export data for analysis
 
-3. **Analyze Trends**
-   - View voltage trends over time
-   - Track distance travelled patterns
-   - Use interactive charts for detailed analysis
-
-4. **Manage Logs**
-   - Edit existing logs by clicking "Edit"
-   - Delete logs with confirmation
-   - View all historical data in chronological order
+### 5. **Profile Management**
+   - Update personal information
+   - Configure scooter specifications
+   - Manage account settings
 
 ## 🚀 Deployment
 
 ### Backend Deployment
 1. Set up a MongoDB instance (MongoDB Atlas recommended)
-2. Configure environment variables
+2. Configure environment variables (JWT_SECRET, MONGO_URI)
 3. Deploy to your preferred platform (Heroku, Vercel, etc.)
 
 ### Frontend Deployment
 1. Build the application: `npm run build`
 2. Deploy the `dist` folder to your hosting service
 3. Configure the API base URL for production
+
+### Environment Variables
+```env
+# Backend
+PORT=3000
+MONGO_URI=mongodb://your-mongodb-uri
+JWT_SECRET=your-secure-jwt-secret
+
+# Frontend
+VITE_API_BASE=http://your-backend-url/api
+```
+
+## 🔧 Configuration
+
+### Node.js Version
+The project requires Node.js v20.19.0 or higher. Use the `.nvmrc` file:
+```bash
+nvm use
+```
+
+### MongoDB Connection
+Configure MongoDB connection in the backend `.env` file. The app supports both local and cloud MongoDB instances.
+
+### JWT Configuration
+Set a secure JWT secret in the backend environment variables for production use.
+
+## 📱 Responsive Design
+
+The application is fully responsive with different behaviors:
+- **Desktop (≥1024px)**: Sidebar always open, full navigation
+- **Tablet/Mobile (<1024px)**: Collapsible sidebar, mobile-optimized interface
 
 ## 🤝 Contributing
 
@@ -209,7 +316,7 @@ The battery percentage calculation assumes a voltage range of 60V-84V. This can 
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is licensed under the MIT License.
 
 ## 🆘 Support
 
