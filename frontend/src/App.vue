@@ -218,20 +218,27 @@ function handleNavigation(view) {
 
 async function fetchLogs() {
   try {
+    console.log('🔍 Fetching logs...')
     const response = await fetch(`${apiBase}/logs`, {
       headers: {
         'Authorization': `Bearer ${token.value}`
       }
     })
     
+    console.log('📊 Logs response status:', response.status)
+    
     if (response.ok) {
       const result = await response.json()
+      console.log('📋 Logs result:', result)
       logs.value = result.data
     } else if (response.status === 401) {
+      console.log('🔒 Unauthorized, logging out...')
       handleLogout()
+    } else {
+      console.error('❌ Error response:', response.status, response.statusText)
     }
   } catch (err) {
-    console.error('Error fetching logs:', err)
+    console.error('❌ Error fetching logs:', err)
   }
 }
 

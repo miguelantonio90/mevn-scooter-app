@@ -98,7 +98,13 @@
           <h3 class="text-lg font-semibold text-gray-900">Eficiencia por Viaje</h3>
         </div>
         <div class="card-body">
-          <Line :chart-data="efficiencyChartData" :chart-options="chartOptions" />
+          <div v-if="!props.logs || props.logs.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">No hay datos para mostrar</p>
+          </div>
+          <Line v-else :chart-data="efficiencyChartData" :chart-options="chartOptions" />
         </div>
       </div>
       
@@ -107,7 +113,13 @@
           <h3 class="text-lg font-semibold text-gray-900">Consumo de Energía</h3>
         </div>
         <div class="card-body">
-          <Line :chart-data="consumptionChartData" :chart-options="chartOptions" />
+          <div v-if="!props.logs || props.logs.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">No hay datos para mostrar</p>
+          </div>
+          <Line v-else :chart-data="consumptionChartData" :chart-options="chartOptions" />
         </div>
       </div>
     </div>
@@ -251,37 +263,77 @@ const batteryHealthClass = computed(() => {
 })
 
 // Chart data
-const efficiencyChartData = computed(() => ({
-  labels: props.logs.map(log => new Date(log.date).toLocaleDateString()),
-  datasets: [{
-    label: 'Eficiencia (Wh/km)',
-    data: props.logs.map(log => log.efficiency || 0),
-    borderColor: 'rgb(59, 130, 246)',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    fill: true,
-    tension: 0.4,
-    pointRadius: 4,
-    pointBackgroundColor: 'rgb(59, 130, 246)',
-    pointBorderColor: '#fff',
-    pointBorderWidth: 2
-  }]
-}))
+const efficiencyChartData = computed(() => {
+  if (!props.logs || props.logs.length === 0) {
+    return {
+      labels: [],
+      datasets: [{
+        label: 'Eficiencia (Wh/km)',
+        data: [],
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: 'rgb(59, 130, 246)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2
+      }]
+    }
+  }
+  
+  return {
+    labels: props.logs.map(log => new Date(log.date).toLocaleDateString()),
+    datasets: [{
+      label: 'Eficiencia (Wh/km)',
+      data: props.logs.map(log => log.efficiency || 0),
+      borderColor: 'rgb(59, 130, 246)',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: 'rgb(59, 130, 246)',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2
+    }]
+  }
+})
 
-const consumptionChartData = computed(() => ({
-  labels: props.logs.map(log => new Date(log.date).toLocaleDateString()),
-  datasets: [{
-    label: 'Consumo (Wh)',
-    data: props.logs.map(log => log.whConsumed || 0),
-    borderColor: 'rgb(34, 197, 94)',
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    fill: true,
-    tension: 0.4,
-    pointRadius: 4,
-    pointBackgroundColor: 'rgb(34, 197, 94)',
-    pointBorderColor: '#fff',
-    pointBorderWidth: 2
-  }]
-}))
+const consumptionChartData = computed(() => {
+  if (!props.logs || props.logs.length === 0) {
+    return {
+      labels: [],
+      datasets: [{
+        label: 'Consumo (Wh)',
+        data: [],
+        borderColor: 'rgb(34, 197, 94)',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: 'rgb(34, 197, 94)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2
+      }]
+    }
+  }
+  
+  return {
+    labels: props.logs.map(log => new Date(log.date).toLocaleDateString()),
+    datasets: [{
+      label: 'Consumo (Wh)',
+      data: props.logs.map(log => log.whConsumed || 0),
+      borderColor: 'rgb(34, 197, 94)',
+      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: 'rgb(34, 197, 94)',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2
+    }]
+  }
+})
 
 const chartOptions = {
   responsive: true,
@@ -339,18 +391,24 @@ const chartOptions = {
 
 async function fetchMetrics() {
   try {
+    console.log('🔍 Fetching metrics...')
     const response = await fetch(`${apiBase}/logs/metrics/efficiency`, {
       headers: {
         'Authorization': `Bearer ${props.token}`
       }
     })
     
+    console.log('📊 Response status:', response.status)
+    
     if (response.ok) {
       const result = await response.json()
+      console.log('📈 Metrics result:', result)
       metrics.value = result.data
+    } else {
+      console.error('❌ Error response:', response.status, response.statusText)
     }
   } catch (err) {
-    console.error('Error fetching metrics:', err)
+    console.error('❌ Error fetching metrics:', err)
   }
 }
 
