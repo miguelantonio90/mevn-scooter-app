@@ -113,35 +113,34 @@
       </div>
 
       <!-- Gráficos -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="card">
+      <div v-if="logs.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div v-if="efficiencyChartData" class="card">
           <div class="card-header">
             <h3 class="text-lg font-semibold text-gray-900">Eficiencia por Viaje</h3>
           </div>
           <div class="card-body">
-            <div v-if="!chartDataReady" class="text-center py-12">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-              </svg>
-              <p class="mt-2 text-sm text-gray-500">No hay datos para mostrar</p>
-            </div>
-            <Line v-else-if="chartDataReady" :chart-data="efficiencyChartData" :chart-options="chartOptions" />
+            <Line :chart-data="efficiencyChartData" :chart-options="chartOptions" />
           </div>
         </div>
         
-        <div class="card">
+        <div v-if="consumptionChartData" class="card">
           <div class="card-header">
             <h3 class="text-lg font-semibold text-gray-900">Consumo de Energía</h3>
           </div>
           <div class="card-body">
-            <div v-if="!chartDataReady" class="text-center py-12">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-              </svg>
-              <p class="mt-2 text-sm text-gray-500">No hay datos para mostrar</p>
-            </div>
-            <Line v-else-if="chartDataReady" :chart-data="consumptionChartData" :chart-options="chartOptions" />
+            <Line :chart-data="consumptionChartData" :chart-options="chartOptions" />
           </div>
+        </div>
+      </div>
+
+      <!-- Mensaje cuando no hay datos para gráficos -->
+      <div v-else class="card">
+        <div class="card-body text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No hay datos para gráficos</h3>
+          <p class="mt-1 text-sm text-gray-500">Agrega algunos viajes para ver gráficos de eficiencia y consumo.</p>
         </div>
       </div>
 
@@ -234,7 +233,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -278,134 +277,76 @@ export default {
     })
     const loading = ref(true)
     const error = ref(null)
-    const dataLoaded = ref(false)
 
-    // Computed properties para los gráficos
-    const chartDataReady = computed(() => {
-      return dataLoaded.value && logs.value && logs.value.length > 0 && !loading.value
-    })
-
+    // Solo crear datos de gráficos si hay logs válidos
     const efficiencyChartData = computed(() => {
-      if (!chartDataReady.value) {
-        return {
-          labels: [''],
-          datasets: [{
-            label: 'Eficiencia (Wh/km)',
-            data: [0],
-            borderColor: 'rgb(59, 130, 246)',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            tension: 0.1
-          }]
-        }
+      if (!logs.value || logs.value.length === 0) {
+        return null
       }
 
-      try {
-        const sortedLogs = [...logs.value]
-          .filter(log => log.date && log.efficiency !== undefined && log.efficiency !== null)
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
-        
-        if (sortedLogs.length === 0) {
-          return {
-            labels: [''],
-            datasets: [{
-              label: 'Eficiencia (Wh/km)',
-              data: [0],
-              borderColor: 'rgb(59, 130, 246)',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-              tension: 0.1
-            }]
-          }
-        }
-        
-        return {
-          labels: sortedLogs.map(log => {
-            const date = new Date(log.date)
-            return `${date.getDate()}/${date.getMonth() + 1}`
-          }),
-          datasets: [{
-            label: 'Eficiencia (Wh/km)',
-            data: sortedLogs.map(log => Number(log.efficiency) || 0),
-            borderColor: 'rgb(59, 130, 246)',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            tension: 0.1
-          }]
-        }
-      } catch (err) {
-        console.error('Error creating efficiency chart data:', err)
-        return {
-          labels: [''],
-          datasets: [{
-            label: 'Eficiencia (Wh/km)',
-            data: [0],
-            borderColor: 'rgb(59, 130, 246)',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            tension: 0.1
-          }]
-        }
+      const validLogs = logs.value.filter(log => 
+        log.date && 
+        log.efficiency !== undefined && 
+        log.efficiency !== null && 
+        !isNaN(Number(log.efficiency))
+      )
+
+      if (validLogs.length === 0) {
+        return null
+      }
+
+      const sortedLogs = validLogs.sort((a, b) => new Date(a.date) - new Date(b.date))
+      
+      return {
+        labels: sortedLogs.map(log => {
+          const date = new Date(log.date)
+          return `${date.getDate()}/${date.getMonth() + 1}`
+        }),
+        datasets: [{
+          label: 'Eficiencia (Wh/km)',
+          data: sortedLogs.map(log => Number(log.efficiency)),
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.1
+        }]
       }
     })
 
     const consumptionChartData = computed(() => {
-      if (!chartDataReady.value) {
-        return {
-          labels: [''],
-          datasets: [{
-            label: 'Consumo (Wh)',
-            data: [0],
-            borderColor: 'rgb(16, 185, 129)',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            tension: 0.1
-          }]
-        }
+      if (!logs.value || logs.value.length === 0) {
+        return null
       }
 
-      try {
-        const sortedLogs = [...logs.value]
-          .filter(log => log.date && log.efficiency !== undefined && log.kmTravelled !== undefined)
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
-        
-        if (sortedLogs.length === 0) {
-          return {
-            labels: [''],
-            datasets: [{
-              label: 'Consumo (Wh)',
-              data: [0],
-              borderColor: 'rgb(16, 185, 129)',
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              tension: 0.1
-            }]
-          }
-        }
-        
-        return {
-          labels: sortedLogs.map(log => {
-            const date = new Date(log.date)
-            return `${date.getDate()}/${date.getMonth() + 1}`
+      const validLogs = logs.value.filter(log => 
+        log.date && 
+        log.efficiency !== undefined && 
+        log.kmTravelled !== undefined &&
+        !isNaN(Number(log.efficiency)) &&
+        !isNaN(Number(log.kmTravelled))
+      )
+
+      if (validLogs.length === 0) {
+        return null
+      }
+
+      const sortedLogs = validLogs.sort((a, b) => new Date(a.date) - new Date(b.date))
+      
+      return {
+        labels: sortedLogs.map(log => {
+          const date = new Date(log.date)
+          return `${date.getDate()}/${date.getMonth() + 1}`
+        }),
+        datasets: [{
+          label: 'Consumo (Wh)',
+          data: sortedLogs.map(log => {
+            const efficiency = Number(log.efficiency)
+            const distance = Number(log.kmTravelled)
+            return efficiency * distance
           }),
-          datasets: [{
-            label: 'Consumo (Wh)',
-            data: sortedLogs.map(log => {
-              const efficiency = Number(log.efficiency) || 0
-              const distance = Number(log.kmTravelled) || 0
-              return efficiency * distance
-            }),
-            borderColor: 'rgb(16, 185, 129)',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            tension: 0.1
-          }]
-        }
-      } catch (err) {
-        console.error('Error creating consumption chart data:', err)
-        return {
-          labels: [''],
-          datasets: [{
-            label: 'Consumo (Wh)',
-            data: [0],
-            borderColor: 'rgb(16, 185, 129)',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            tension: 0.1
-          }]
-        }
+          borderColor: 'rgb(16, 185, 129)',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.1
+        }]
       }
     })
 
@@ -451,7 +392,6 @@ export default {
           year: 'numeric'
         })
       } catch (err) {
-        console.error('Error formatting date:', err)
         return 'Fecha inválida'
       }
     }
@@ -472,61 +412,45 @@ export default {
         }
       }
 
-      try {
-        const totalTrips = logsData.length
-        const totalDistance = logsData.reduce((sum, log) => sum + (Number(log.kmTravelled) || 0), 0)
-        const efficiencies = logsData
-          .map(log => Number(log.efficiency) || 0)
-          .filter(eff => eff > 0)
-        
-        const averageEfficiency = efficiencies.length > 0 ? efficiencies.reduce((sum, eff) => sum + eff, 0) / efficiencies.length : 0
-        const bestEfficiency = efficiencies.length > 0 ? Math.min(...efficiencies) : 0
-        const worstEfficiency = efficiencies.length > 0 ? Math.max(...efficiencies) : 0
-        const averageDistance = totalDistance / totalTrips
-        const totalWhConsumed = logsData.reduce((sum, log) => {
-          const efficiency = Number(log.efficiency) || 0
-          const distance = Number(log.kmTravelled) || 0
-          return sum + (efficiency * distance)
-        }, 0)
-        const averageWhPerKm = totalDistance > 0 ? totalWhConsumed / totalDistance : 0
+      const totalTrips = logsData.length
+      const totalDistance = logsData.reduce((sum, log) => sum + (Number(log.kmTravelled) || 0), 0)
+      const efficiencies = logsData
+        .map(log => Number(log.efficiency) || 0)
+        .filter(eff => eff > 0)
+      
+      const averageEfficiency = efficiencies.length > 0 ? efficiencies.reduce((sum, eff) => sum + eff, 0) / efficiencies.length : 0
+      const bestEfficiency = efficiencies.length > 0 ? Math.min(...efficiencies) : 0
+      const worstEfficiency = efficiencies.length > 0 ? Math.max(...efficiencies) : 0
+      const averageDistance = totalDistance / totalTrips
+      const totalWhConsumed = logsData.reduce((sum, log) => {
+        const efficiency = Number(log.efficiency) || 0
+        const distance = Number(log.kmTravelled) || 0
+        return sum + (efficiency * distance)
+      }, 0)
+      const averageWhPerKm = totalDistance > 0 ? totalWhConsumed / totalDistance : 0
 
-        // Calcular salud de batería basada en el voltaje promedio
-        const voltages = logsData
-          .map(log => Number(log.voltageStart) || 0)
-          .filter(v => v > 0)
-        const avgVoltage = voltages.length > 0 ? voltages.reduce((sum, v) => sum + v, 0) / voltages.length : 0
-        const batteryHealth = avgVoltage > 0 ? Math.min(100, Math.max(0, ((avgVoltage - 36) / (42 - 36)) * 100)) : 0
+      // Calcular salud de batería basada en el voltaje promedio
+      const voltages = logsData
+        .map(log => Number(log.voltageStart) || 0)
+        .filter(v => v > 0)
+      const avgVoltage = voltages.length > 0 ? voltages.reduce((sum, v) => sum + v, 0) / voltages.length : 0
+      const batteryHealth = avgVoltage > 0 ? Math.min(100, Math.max(0, ((avgVoltage - 36) / (42 - 36)) * 100)) : 0
 
-        // Rango estimado (asumiendo batería de 10.4Ah a 42V = ~437Wh)
-        const batteryCapacity = 437 // Wh
-        const estimatedRange = averageEfficiency > 0 ? batteryCapacity / averageEfficiency : 0
+      // Rango estimado (asumiendo batería de 10.4Ah a 42V = ~437Wh)
+      const batteryCapacity = 437 // Wh
+      const estimatedRange = averageEfficiency > 0 ? batteryCapacity / averageEfficiency : 0
 
-        return {
-          totalTrips,
-          totalDistance: Math.round(totalDistance * 100) / 100,
-          averageEfficiency: Math.round(averageEfficiency * 100) / 100,
-          estimatedRange: Math.round(estimatedRange * 100) / 100,
-          batteryHealth: Math.round(batteryHealth),
-          bestEfficiency: Math.round(bestEfficiency * 100) / 100,
-          worstEfficiency: Math.round(worstEfficiency * 100) / 100,
-          averageDistance: Math.round(averageDistance * 100) / 100,
-          totalWhConsumed: Math.round(totalWhConsumed),
-          averageWhPerKm: Math.round(averageWhPerKm * 100) / 100
-        }
-      } catch (err) {
-        console.error('Error calculating metrics:', err)
-        return {
-          totalTrips: 0,
-          totalDistance: 0,
-          averageEfficiency: 0,
-          estimatedRange: 0,
-          batteryHealth: 0,
-          bestEfficiency: 0,
-          worstEfficiency: 0,
-          averageDistance: 0,
-          totalWhConsumed: 0,
-          averageWhPerKm: 0
-        }
+      return {
+        totalTrips,
+        totalDistance: Math.round(totalDistance * 100) / 100,
+        averageEfficiency: Math.round(averageEfficiency * 100) / 100,
+        estimatedRange: Math.round(estimatedRange * 100) / 100,
+        batteryHealth: Math.round(batteryHealth),
+        bestEfficiency: Math.round(bestEfficiency * 100) / 100,
+        worstEfficiency: Math.round(worstEfficiency * 100) / 100,
+        averageDistance: Math.round(averageDistance * 100) / 100,
+        totalWhConsumed: Math.round(totalWhConsumed),
+        averageWhPerKm: Math.round(averageWhPerKm * 100) / 100
       }
     }
 
@@ -534,44 +458,32 @@ export default {
       try {
         loading.value = true
         error.value = null
-        dataLoaded.value = false
         
         const token = localStorage.getItem('token')
         if (!token) {
           throw new Error('No hay token de autenticación')
         }
 
-        console.log('Fetching logs with token:', token)
-        
         const response = await fetch('http://localhost:3000/api/logs', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         })
-
-        console.log('Response status:', response.status)
         
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`)
         }
 
         const data = await response.json()
-        console.log('Fetched data:', data)
-        
         logs.value = data.logs || []
         metrics.value = calculateMetrics(logs.value)
-        
-        // Esperar al siguiente tick para asegurar que los datos estén procesados
-        await nextTick()
-        dataLoaded.value = true
         
       } catch (err) {
         console.error('Error fetching data:', err)
         error.value = err.message
         logs.value = []
         metrics.value = calculateMetrics([])
-        dataLoaded.value = false
       } finally {
         loading.value = false
       }
@@ -586,7 +498,6 @@ export default {
       metrics,
       loading,
       error,
-      chartDataReady,
       efficiencyChartData,
       consumptionChartData,
       chartOptions,
