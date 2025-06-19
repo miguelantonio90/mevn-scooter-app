@@ -190,257 +190,186 @@
             </button>
             <button 
               type="submit" 
+              :disabled="loading"
               class="btn-primary"
             >
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <svg v-else class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
               </svg>
-              {{ editId ? 'Actualizar Registro' : 'Guardar Registro' }}
+              {{ loading ? 'Guardando...' : (editId ? 'Actualizar Registro' : 'Guardar Registro') }}
             </button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Gráficos -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="text-lg font-semibold text-gray-900">Evolución del Voltaje</h3>
-        </div>
-        <div class="card-body">
-          <Line :chart-data="voltageChartData" :chart-options="chartOptions" />
+    <!-- Success message -->
+    <div v-if="successMessage" class="card bg-success-50 border-success-200">
+      <div class="card-body">
+        <div class="flex">
+          <svg class="w-5 h-5 text-success-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <p class="ml-3 text-sm text-success-700">{{ successMessage }}</p>
         </div>
       </div>
-      
-      <div class="card">
-        <div class="card-header">
-          <h3 class="text-lg font-semibold text-gray-900">Distancia Recorrida</h3>
-        </div>
-        <div class="card-body">
-          <Line :chart-data="kmChartData" :chart-options="chartOptions" />
+    </div>
+
+    <!-- Error message -->
+    <div v-if="errorMessage" class="card bg-danger-50 border-danger-200">
+      <div class="card-body">
+        <div class="flex">
+          <svg class="w-5 h-5 text-danger-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p class="ml-3 text-sm text-danger-700">{{ errorMessage }}</p>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script>
 import { ref, computed, onMounted } from 'vue'
-import { Line } from 'vue-chartjs'
-import {
-  Chart,
-  LineElement,
-  PointElement,
-  LinearScale,
-  Title,
-  CategoryScale,
-  Tooltip,
-  Legend
-} from 'chart.js'
 
-Chart.register(LineElement, PointElement, LinearScale, Title, CategoryScale, Tooltip, Legend)
+export default {
+  name: 'LogForm',
+  emits: ['log-created'],
+  setup(props, { emit }) {
+    const form = ref({
+      date: new Date().toISOString().slice(0, 10),
+      voltageStart: 0,
+      voltageEnd: 0,
+      kmTravelled: 0,
+      batteryCapacity: 1000,
+      weather: '',
+      terrain: '',
+      riderWeight: 0,
+      speed: 0,
+      notes: ''
+    })
+    
+    const editId = ref(null)
+    const latestVoltage = ref(0)
+    const loading = ref(false)
+    const successMessage = ref('')
+    const errorMessage = ref('')
 
-const props = defineProps({
-  logs: Array,
-  token: String
-})
-
-const emit = defineEmits(['log-saved', 'log-updated'])
-
-const form = ref({
-  date: '',
-  voltageStart: 0,
-  voltageEnd: 0,
-  kmTravelled: 0,
-  batteryCapacity: 1000,
-  weather: '',
-  terrain: '',
-  riderWeight: 0,
-  speed: 0,
-  notes: ''
-})
-const editId = ref(null)
-const latestVoltage = ref(0)
-
-const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:3000/api'
-
-async function saveLog() {
-  try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${props.token}`
-    }
-
-    if (editId.value) {
-      await fetch(`${apiBase}/logs/${editId.value}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(form.value),
-      })
-      emit('log-updated')
-    } else {
-      await fetch(`${apiBase}/logs`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(form.value),
-      })
-      emit('log-saved')
-    }
-    resetForm()
-  } catch (err) {
-    console.error('Error saving log:', err)
-  }
-}
-
-function editLog(log) {
-  editId.value = log._id
-  form.value = { 
-    ...log, 
-    date: log.date.slice(0, 10),
-    voltageStart: log.voltageStart || log.voltage,
-    voltageEnd: log.voltageEnd || log.voltage
-  }
-}
-
-function cancelEdit() {
-  resetForm()
-}
-
-function resetForm() {
-  form.value = {
-    date: '',
-    voltageStart: 0,
-    voltageEnd: 0,
-    kmTravelled: 0,
-    batteryCapacity: 1000,
-    weather: '',
-    terrain: '',
-    riderWeight: 0,
-    speed: 0,
-    notes: ''
-  }
-  editId.value = null
-}
-
-// Battery % assuming voltage range 60-84V
-const batteryPercent = computed(() => {
-  const v = latestVoltage.value
-  if (v <= 60) return 0
-  if (v >= 84) return 100
-  return ((v - 60) / (84 - 60)) * 100
-})
-
-const batteryBarClass = computed(() => {
-  if (batteryPercent.value > 75) return 'bg-success-500'
-  if (batteryPercent.value > 50) return 'bg-warning-500'
-  if (batteryPercent.value > 25) return 'bg-orange-500'
-  return 'bg-danger-500'
-})
-
-const batteryIconClass = computed(() => {
-  if (batteryPercent.value > 75) return 'bg-success-500'
-  if (batteryPercent.value > 50) return 'bg-warning-500'
-  if (batteryPercent.value > 25) return 'bg-orange-500'
-  return 'bg-danger-500'
-})
-
-// Chart data
-const voltageChartData = computed(() => ({
-  labels: props.logs.map(log => new Date(log.date).toLocaleDateString()),
-  datasets: [{
-    label: 'Voltaje Inicial (V)',
-    data: props.logs.map(log => log.voltageStart || log.voltage),
-    borderColor: 'rgb(59, 130, 246)',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    fill: true,
-    tension: 0.4,
-    pointRadius: 6,
-    pointBackgroundColor: 'rgb(59, 130, 246)',
-    pointBorderColor: '#fff',
-    pointBorderWidth: 2
-  }]
-}))
-
-const kmChartData = computed(() => ({
-  labels: props.logs.map(log => new Date(log.date).toLocaleDateString()),
-  datasets: [{
-    label: 'Kilómetros Recorridos',
-    data: props.logs.map(log => log.kmTravelled),
-    borderColor: 'rgb(34, 197, 94)',
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    fill: true,
-    tension: 0.4,
-    pointRadius: 6,
-    pointBackgroundColor: 'rgb(34, 197, 94)',
-    pointBorderColor: '#fff',
-    pointBorderWidth: 2
-  }]
-}))
-
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { 
-      position: 'top',
-      labels: {
-        usePointStyle: true,
-        padding: 20,
-        font: {
-          family: 'Inter',
-          size: 12
+    const saveLog = async () => {
+      try {
+        loading.value = true
+        errorMessage.value = ''
+        successMessage.value = ''
+        
+        const token = localStorage.getItem('token')
+        if (!token) {
+          throw new Error('No hay token de autenticación')
         }
-      }
-    },
-    tooltip: { 
-      mode: 'index', 
-      intersect: false,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      titleColor: '#fff',
-      bodyColor: '#fff',
-      borderColor: 'rgba(255, 255, 255, 0.1)',
-      borderWidth: 1
-    }
-  },
-  scales: {
-    x: { 
-      display: true,
-      grid: {
-        display: false
-      },
-      ticks: {
-        font: {
-          family: 'Inter',
-          size: 11
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
-      }
-    },
-    y: { 
-      display: true, 
-      beginAtZero: true,
-      grid: {
-        color: 'rgba(0, 0, 0, 0.05)'
-      },
-      ticks: {
-        font: {
-          family: 'Inter',
-          size: 11
+
+        const response = await fetch('http://localhost:3000/api/logs', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(form.value),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Error al guardar el registro')
         }
+
+        const data = await response.json()
+        successMessage.value = 'Registro guardado exitosamente'
+        resetForm()
+        emit('log-created')
+        
+        // Limpiar mensaje de éxito después de 3 segundos
+        setTimeout(() => {
+          successMessage.value = ''
+        }, 3000)
+        
+      } catch (err) {
+        console.error('Error saving log:', err)
+        errorMessage.value = err.message
+        
+        // Limpiar mensaje de error después de 5 segundos
+        setTimeout(() => {
+          errorMessage.value = ''
+        }, 5000)
+      } finally {
+        loading.value = false
       }
     }
+
+    const cancelEdit = () => {
+      resetForm()
+    }
+
+    const resetForm = () => {
+      form.value = {
+        date: new Date().toISOString().slice(0, 10),
+        voltageStart: 0,
+        voltageEnd: 0,
+        kmTravelled: 0,
+        batteryCapacity: 1000,
+        weather: '',
+        terrain: '',
+        riderWeight: 0,
+        speed: 0,
+        notes: ''
+      }
+      editId.value = null
+    }
+
+    // Battery % assuming voltage range 60-84V
+    const batteryPercent = computed(() => {
+      const v = latestVoltage.value
+      if (v <= 60) return 0
+      if (v >= 84) return 100
+      return ((v - 60) / (84 - 60)) * 100
+    })
+
+    const batteryBarClass = computed(() => {
+      if (batteryPercent.value > 75) return 'bg-success-500'
+      if (batteryPercent.value > 50) return 'bg-warning-500'
+      if (batteryPercent.value > 25) return 'bg-orange-500'
+      return 'bg-danger-500'
+    })
+
+    const batteryIconClass = computed(() => {
+      if (batteryPercent.value > 75) return 'bg-success-500'
+      if (batteryPercent.value > 50) return 'bg-warning-500'
+      if (batteryPercent.value > 25) return 'bg-orange-500'
+      return 'bg-danger-500'
+    })
+
+    onMounted(() => {
+      // Establecer voltaje inicial por defecto
+      latestVoltage.value = 84
+    })
+
+    return {
+      form,
+      editId,
+      latestVoltage,
+      loading,
+      successMessage,
+      errorMessage,
+      batteryPercent,
+      batteryBarClass,
+      batteryIconClass,
+      saveLog,
+      cancelEdit,
+      resetForm
+    }
   }
 }
-
-onMounted(() => {
-  if (props.logs.length) {
-    latestVoltage.value = props.logs[0].voltageStart
-  }
-})
-
-// Exponer métodos para el componente padre
-defineExpose({
-  editLog,
-  resetForm
-})
 </script> 
