@@ -239,7 +239,7 @@ export default {
           throw new Error('No hay token de autenticación')
         }
 
-        const response = await fetch('http://localhost:3000/api/auth/profile', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/auth/profile`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -281,7 +281,7 @@ export default {
         successMessage.value = ''
         
         const token = localStorage.getItem('token')
-        const response = await fetch('http://localhost:3000/api/auth/profile', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/auth/profile`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -322,7 +322,7 @@ export default {
         successMessage.value = ''
         
         const token = localStorage.getItem('token')
-        const response = await fetch('http://localhost:3000/api/auth/scooter', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/auth/scooter`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,

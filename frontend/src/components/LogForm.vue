@@ -260,7 +260,7 @@ export default {
           'Authorization': `Bearer ${token}`
         }
 
-        const response = await fetch('http://localhost:3000/api/logs', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/logs`, {
           method: 'POST',
           headers,
           body: JSON.stringify(form.value),

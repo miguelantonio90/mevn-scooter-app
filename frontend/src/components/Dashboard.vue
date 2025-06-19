@@ -464,7 +464,7 @@ export default {
           throw new Error('No hay token de autenticación')
         }
 
-        const response = await fetch('http://localhost:3000/api/logs', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/logs`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

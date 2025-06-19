@@ -263,7 +263,7 @@ export default {
         // Aquí podrías enviar al backend si es necesario
         const token = localStorage.getItem('token')
         if (token) {
-          const response = await fetch('http://localhost:3000/api/auth/settings', {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE}/auth/settings`, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${token}`,
