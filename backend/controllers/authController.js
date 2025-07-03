@@ -342,7 +342,8 @@ const updateSettings = async (req, res) => {
       temperatureUnit, 
       batteryNotifications, 
       maintenanceNotifications, 
-      shareAnonymousData 
+      shareAnonymousData,
+      efficiencyGoal // Nuevo campo
     } = req.body;
 
     // Validar unidades
@@ -371,19 +372,43 @@ const updateSettings = async (req, res) => {
       });
     }
 
-    // Preparar objeto de configuraciones
-    const settings = {};
-    if (distanceUnit !== undefined) settings.distanceUnit = distanceUnit;
-    if (speedUnit !== undefined) settings.speedUnit = speedUnit;
-    if (temperatureUnit !== undefined) settings.temperatureUnit = temperatureUnit;
-    if (batteryNotifications !== undefined) settings.batteryNotifications = batteryNotifications;
-    if (maintenanceNotifications !== undefined) settings.maintenanceNotifications = maintenanceNotifications;
-    if (shareAnonymousData !== undefined) settings.shareAnonymousData = shareAnonymousData;
+    // Preparar objeto de configuraciones para actualizar usando $set
+    const updateFields = {};
+    if (distanceUnit !== undefined) updateFields['settings.distanceUnit'] = distanceUnit;
+    if (speedUnit !== undefined) updateFields['settings.speedUnit'] = speedUnit;
+    if (temperatureUnit !== undefined) updateFields['settings.temperatureUnit'] = temperatureUnit;
+    if (batteryNotifications !== undefined) updateFields['settings.batteryNotifications'] = batteryNotifications;
+    if (maintenanceNotifications !== undefined) updateFields['settings.maintenanceNotifications'] = maintenanceNotifications;
+    if (shareAnonymousData !== undefined) updateFields['settings.shareAnonymousData'] = shareAnonymousData;
+    if (efficiencyGoal !== undefined) {
+      if (efficiencyGoal === null || efficiencyGoal === '') { // Permitir borrar la meta
+        updateFields['settings.efficiencyGoal'] = null;
+      } else {
+        const goal = Number(efficiencyGoal);
+        if (isNaN(goal) || goal < 1 || goal > 1000) {
+          return res.status(400).json({
+            success: false,
+            error: 'La meta de eficiencia debe ser un número entre 1 y 1000, o estar vacía.'
+          });
+        }
+        updateFields['settings.efficiencyGoal'] = goal;
+      }
+    }
+
+    // Si no hay campos para actualizar, devolver éxito temprano.
+    if (Object.keys(updateFields).length === 0) {
+      const currentUser = await User.findById(req.user.id).select('-password');
+      return res.json({
+        success: true,
+        message: 'No se especificaron configuraciones para actualizar.',
+        settings: currentUser.settings
+      });
+    }
 
     // Actualizar configuraciones
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { settings },
+      { $set: updateFields },
       { new: true, runValidators: true }
     ).select('-password');
 

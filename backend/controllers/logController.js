@@ -24,6 +24,26 @@ const getLogs = async (req, res) => {
   }
 };
 
+// @desc    Export all logs for the authenticated user
+// @route   GET /api/logs/export
+// @access  Private
+const exportUserLogs = async (req, res) => {
+  try {
+    const logs = await Log.find({ userId: req.user.id }).sort({ date: -1 });
+
+    // Por ahora, simplemente devolvemos los logs.
+    // En el futuro, podríamos formatear esto como CSV o agregar más metadatos.
+    res.json({
+      count: logs.length,
+      logs: logs
+    });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
 // @desc    Get single log
 // @route   GET /api/logs/:id
 // @access  Private
@@ -259,5 +279,6 @@ module.exports = {
   createLog,
   updateLog,
   deleteLog,
-  getEfficiencyMetrics
+  getEfficiencyMetrics,
+  exportUserLogs
 }; 

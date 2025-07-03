@@ -2,65 +2,65 @@
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-3xl font-bold text-gray-900">Perfil de Usuario</h1>
-      <p class="mt-1 text-sm text-gray-600">Gestiona tu información personal y datos del scooter</p>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Perfil de Usuario</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Gestiona tu información personal y datos del scooter</p>
     </div>
 
     <!-- Loading state -->
     <div v-if="loading" class="text-center py-12">
-      <svg class="mx-auto h-12 w-12 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
       </svg>
-      <p class="mt-2 text-sm text-gray-500">Cargando perfil...</p>
+      <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Cargando perfil...</p>
     </div>
 
     <!-- Content -->
     <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Información Personal -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="text-xl font-semibold text-gray-900">Información Personal</h2>
+      <div class="card"> <!-- bg-white dark:bg-gray-800 border dark:border-gray-700 -->
+        <div class="card-header"> <!-- border-b dark:border-gray-700 -->
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Información Personal</h2>
         </div>
         <div class="card-body">
           <form @submit.prevent="updateProfile" class="space-y-4">
             <div>
-              <label for="name" class="form-label">Nombre Completo</label>
+              <label for="name" class="form-label dark:text-gray-300">Nombre Completo</label>
               <input 
                 id="name" 
                 v-model="profile.name" 
                 type="text" 
                 required 
-                class="form-input"
+                class="form-input dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               />
             </div>
             
             <div>
-              <label for="username" class="form-label">Nombre de Usuario</label>
+              <label for="username" class="form-label dark:text-gray-300">Nombre de Usuario</label>
               <input 
                 id="username" 
                 v-model="profile.username" 
                 type="text" 
                 required 
-                class="form-input"
+                class="form-input dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               />
             </div>
             
             <div>
-              <label for="email" class="form-label">Correo Electrónico</label>
+              <label for="email" class="form-label dark:text-gray-300">Correo Electrónico</label>
               <input 
                 id="email" 
                 v-model="profile.email" 
                 type="email" 
                 required 
-                class="form-input"
+                class="form-input dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
               />
             </div>
 
-            <div class="flex items-center justify-end pt-4">
+            <div class="flex items-center justify-end pt-4 border-t dark:border-gray-700">
               <button 
                 type="submit" 
                 :disabled="updating"
-                class="btn-primary"
+                class="btn-primary dark:bg-primary-500 dark:hover:bg-primary-600"
               >
                 <svg v-if="updating" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -74,38 +74,38 @@
       </div>
 
       <!-- Información del Scooter -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="text-xl font-semibold text-gray-900">Datos del Scooter</h2>
+      <div class="card"> <!-- bg-white dark:bg-gray-800 border dark:border-gray-700 -->
+        <div class="card-header"> <!-- border-b dark:border-gray-700 -->
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Datos del Scooter</h2>
         </div>
         <div class="card-body">
           <form @submit.prevent="updateScooter" class="space-y-4">
             <div>
-              <label for="brand" class="form-label">Marca</label>
+              <label for="brand" class="form-label dark:text-gray-300">Marca</label>
               <input 
                 id="brand" 
                 v-model="scooter.brand" 
                 type="text" 
                 required 
-                class="form-input"
+                class="form-input dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 placeholder="Ej: Xiaomi, Segway, etc."
               />
             </div>
             
             <div>
-              <label for="model" class="form-label">Modelo</label>
+              <label for="model" class="form-label dark:text-gray-300">Modelo</label>
               <input 
                 id="model" 
                 v-model="scooter.model" 
                 type="text" 
                 required 
-                class="form-input"
+                class="form-input dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 placeholder="Ej: Mi Electric Scooter Pro 2"
               />
             </div>
             
             <div>
-              <label for="year" class="form-label">Año</label>
+              <label for="year" class="form-label dark:text-gray-300">Año</label>
               <input 
                 id="year" 
                 v-model="scooter.year" 
@@ -113,26 +113,26 @@
                 min="2010" 
                 max="2030" 
                 required 
-                class="form-input"
+                class="form-input dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 placeholder="2023"
               />
             </div>
             
             <div>
-              <label for="motorPower" class="form-label">Potencia del Motor (W) <span class="text-gray-500">(Opcional)</span></label>
+              <label for="motorPower" class="form-label dark:text-gray-300">Potencia del Motor (W) <span class="text-gray-500 dark:text-gray-400">(Opcional)</span></label>
               <input 
                 id="motorPower" 
                 v-model="scooter.motorPower" 
                 type="number" 
                 min="100" 
                 max="5000" 
-                class="form-input"
+                class="form-input dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 placeholder="Dejar vacío si no conoces"
               />
             </div>
             
             <div>
-              <label for="batteryCapacity" class="form-label">Capacidad de Batería (Wh)</label>
+              <label for="batteryCapacity" class="form-label dark:text-gray-300">Capacidad de Batería (Wh)</label>
               <input 
                 id="batteryCapacity" 
                 v-model="scooter.batteryCapacity" 
@@ -140,13 +140,13 @@
                 min="100" 
                 max="10000" 
                 required 
-                class="form-input"
+                class="form-input dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 placeholder="1000"
               />
             </div>
             
             <div>
-              <label for="maxSpeed" class="form-label">Velocidad Máxima (km/h)</label>
+              <label for="maxSpeed" class="form-label dark:text-gray-300">Velocidad Máxima (km/h)</label>
               <input 
                 id="maxSpeed" 
                 v-model="scooter.maxSpeed" 
@@ -154,16 +154,16 @@
                 min="10" 
                 max="100" 
                 required 
-                class="form-input"
+                class="form-input dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                 placeholder="25"
               />
             </div>
 
-            <div class="flex items-center justify-end pt-4">
+            <div class="flex items-center justify-end pt-4 border-t dark:border-gray-700">
               <button 
                 type="submit" 
                 :disabled="updatingScooter"
-                class="btn-primary"
+                class="btn-primary dark:bg-primary-500 dark:hover:bg-primary-600"
               >
                 <svg v-if="updatingScooter" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -176,39 +176,18 @@
         </div>
       </div>
     </div>
-
-    <!-- Success message -->
-    <div v-if="successMessage" class="card bg-success-50 border-success-200">
-      <div class="card-body">
-        <div class="flex">
-          <svg class="w-5 h-5 text-success-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          <p class="ml-3 text-sm text-success-700">{{ successMessage }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Error message -->
-    <div v-if="errorMessage" class="card bg-danger-50 border-danger-200">
-      <div class="card-body">
-        <div class="flex">
-          <svg class="w-5 h-5 text-danger-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <p class="ml-3 text-sm text-danger-700">{{ errorMessage }}</p>
-        </div>
-      </div>
-    </div>
+    <!-- Mensajes de éxito/error eliminados -->
   </div>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue'
+import { useNotifications } from '@/composables/useNotifications'
 
 export default {
   name: 'Profile',
   setup() {
+    const { addNotification } = useNotifications();
     const profile = ref({
       name: '',
       username: '',
@@ -227,8 +206,8 @@ export default {
     const loading = ref(true)
     const updating = ref(false)
     const updatingScooter = ref(false)
-    const successMessage = ref('')
-    const errorMessage = ref('')
+    // const successMessage = ref('') // Eliminado
+    // const errorMessage = ref('') // Eliminado
 
     const fetchProfile = async () => {
       try {
@@ -258,11 +237,15 @@ export default {
           if (data.user.scooter) {
             scooter.value = { ...data.user.scooter }
           }
+        } else {
+          const errorData = await response.json();
+          addNotification(errorData.error || 'Error al cargar el perfil', 'error');
         }
         
       } catch (err) {
         console.error('Error fetching profile:', err)
-        // Cargar datos básicos del localStorage
+        addNotification(err.message || 'Error al cargar el perfil', 'error');
+        // Cargar datos básicos del localStorage como fallback
         const user = JSON.parse(localStorage.getItem('user') || '{}')
         profile.value = {
           name: user.name || '',
@@ -277,8 +260,8 @@ export default {
     const updateProfile = async () => {
       try {
         updating.value = true
-        errorMessage.value = ''
-        successMessage.value = ''
+        // errorMessage.value = '' // Eliminado
+        // successMessage.value = '' // Eliminado
         
         const token = localStorage.getItem('token')
         const response = await fetch(`${import.meta.env.VITE_API_BASE}/auth/profile`, {
@@ -291,7 +274,7 @@ export default {
         })
 
         if (response.ok) {
-          successMessage.value = 'Perfil actualizado exitosamente'
+          addNotification('Perfil actualizado exitosamente', 'success');
           // Actualizar localStorage
           const user = JSON.parse(localStorage.getItem('user') || '{}')
           user.name = profile.value.name
@@ -305,21 +288,17 @@ export default {
         
       } catch (err) {
         console.error('Error updating profile:', err)
-        errorMessage.value = err.message
+        addNotification(err.message || 'Error al actualizar perfil', 'error');
       } finally {
         updating.value = false
-        setTimeout(() => {
-          successMessage.value = ''
-          errorMessage.value = ''
-        }, 3000)
       }
     }
 
     const updateScooter = async () => {
       try {
         updatingScooter.value = true
-        errorMessage.value = ''
-        successMessage.value = ''
+        // errorMessage.value = '' // Eliminado
+        // successMessage.value = '' // Eliminado
         
         const token = localStorage.getItem('token')
         const response = await fetch(`${import.meta.env.VITE_API_BASE}/auth/scooter`, {
@@ -332,7 +311,7 @@ export default {
         })
 
         if (response.ok) {
-          successMessage.value = 'Datos del scooter actualizados exitosamente'
+          addNotification('Datos del scooter actualizados exitosamente', 'success');
         } else {
           const errorData = await response.json()
           throw new Error(errorData.error || 'Error al actualizar datos del scooter')
@@ -340,13 +319,9 @@ export default {
         
       } catch (err) {
         console.error('Error updating scooter:', err)
-        errorMessage.value = err.message
+        addNotification(err.message || 'Error al actualizar datos del scooter', 'error');
       } finally {
         updatingScooter.value = false
-        setTimeout(() => {
-          successMessage.value = ''
-          errorMessage.value = ''
-        }, 3000)
       }
     }
 
@@ -360,8 +335,8 @@ export default {
       loading,
       updating,
       updatingScooter,
-      successMessage,
-      errorMessage,
+      // successMessage, // Eliminado
+      // errorMessage, // Eliminado
       updateProfile,
       updateScooter
     }

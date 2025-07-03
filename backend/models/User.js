@@ -63,6 +63,12 @@ const SettingsSchema = new mongoose.Schema({
   shareAnonymousData: {
     type: Boolean,
     default: false
+  },
+  efficiencyGoal: { // Meta de eficiencia en Wh/km
+    type: Number,
+    min: [1, 'La meta de eficiencia debe ser de al menos 1 Wh/km'],
+    max: [1000, 'La meta de eficiencia no puede exceder los 1000 Wh/km'],
+    required: false // Es opcional
   }
 }, { _id: false });
 

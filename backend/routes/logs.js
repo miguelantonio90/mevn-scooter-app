@@ -43,4 +43,9 @@ router.put('/:id', updateLog);
 // @access  Private
 router.delete('/:id', deleteLog);
 
+// @route   GET /api/logs/export
+// @desc    Export all logs for the authenticated user
+// @access  Private
+router.get('/export', auth, logController.exportUserLogs);
+
 module.exports = router; 
